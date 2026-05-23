@@ -1,0 +1,23 @@
+{
+  "name": "@callflow/shared",
+  "version": "1.0.0",
+  "description": "Narrow set of shared enums, schemas, and the pino-style logger.",
+  "private": true,
+  "main": "types/index.ts",
+  "types": "types/index.ts",
+  "exports": {
+    ".": "./types/index.ts",
+    "./schemas": "./schemas.ts",
+    "./logger": "./utils/logger.ts",
+    "./instructions": "./instructions.ts"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
