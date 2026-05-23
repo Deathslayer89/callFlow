@@ -1,0 +1,114 @@
+// Prisma schema for CallFlow
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model. Created automatically on first record_caller_email and reused
+// for subsequent calls with the same email (see /api/calls/:id/email upsert).
+// name/phone/metadata are kept for future enrichment from other sources.
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  calls Call[]
+
+  @@map("users")
+}
+
+// Call model - main call session
+model Call {
+  id           String    @id @default(uuid())
+  userId       String?
+  user         User?     @relation(fields: [userId], references: [id])
+  phoneNumber  String?
+  status       String    @default("pending") // pending, active, completed, failed
+  startedAt    DateTime  @default(now())
+  endedAt      DateTime?
+  duration     Int?      // in seconds
+  callerEmail  String?           // written by the agent via /api/calls/:id/email (record_caller_email tool)
+  ticketId     String?           // written by the workflow worker after create_ticket activity completes; agent reads via get_call_ticket
+  tokensInput  Int       @default(0)
+  tokensOutput Int       @default(0)
+  costUsd      Decimal   @default(0) @db.Decimal(10, 6)
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  messages    Message[]
+  transcripts Transcript[]
+  workflows   Workflow[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+  @@map("calls")
+}
+
+// Message model - conversation messages
+model Message {
+  id        String   @id @default(uuid())
+  callId    String
+  call      Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  role      String   // user, assistant, system
+  content   String   @db.Text
+  timestamp DateTime @default(now())
+  metadata  Json?
+
+  @@index([callId])
+  @@index([timestamp])
+  @@map("messages")
+}
+
+// Transcript model — STT-level detail (partial transcripts, confidence, timing).
+// Not populated today; the agent persists final turns to Message instead.
+model Transcript {
+  id         String   @id @default(uuid())
+  callId     String
+  call       Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  content    String   @db.Text
+  startTime  Float    // in seconds
+  endTime    Float    // in seconds
+  speaker    String   // caller, agent
+  confidence Float?
+  isFinal    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([callId])
+  @@index([createdAt])
+  @@map("transcripts")
+}
+
+// Workflow model - async task execution
+model Workflow {
+  id             String    @id @default(uuid())
+  callId         String
+  call           Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  type           String    // check_customer, create_ticket, schedule_appointment, etc.
+  idempotencyKey String    @unique
+  status         String    @default("pending") // pending, running, completed, failed, cancelled
+  input          Json
+  output         Json?
+  error          String?   @db.Text
+  retryCount     Int       @default(0)
+  maxRetries     Int       @default(3)
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([callId])
+  @@index([type])
+  @@index([status])
+  @@map("workflows")
+}
