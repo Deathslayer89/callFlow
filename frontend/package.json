@@ -1,0 +1,37 @@
+{
+  "name": "@callflow/frontend",
+  "version": "1.0.0",
+  "description": "CallFlow dashboard: call management, transcripts, and a text/voice chat with the agent.",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^3.0.187",
+    "@livekit/components-react": "^2.6.0",
+    "@livekit/components-styles": "^1.1.0",
+    "@tanstack/react-query": "^5.17.9",
+    "ai": "^6.0.184",
+    "autoprefixer": "^10.4.16",
+    "axios": "^1.6.5",
+    "date-fns": "^3.0.6",
+    "livekit-client": "^2.7.0",
+    "lucide-react": "^0.303.0",
+    "next": "14.0.4",
+    "postcss": "^8.4.32",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.0.4",
+    "typescript": "^5.3.3"
+  }
+}
