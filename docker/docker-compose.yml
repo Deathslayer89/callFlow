@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: callflow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: callflow
+      POSTGRES_USER: callflow
+      POSTGRES_PASSWORD: callflow_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U callflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: callflow-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Optional: self-hosted LiveKit server. Skip this if you're using
+  # LiveKit Cloud (recommended for development).
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: callflow-livekit
+    restart: unless-stopped
+    profiles: ["livekit"]
+    command: --dev --bind 0.0.0.0
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  default:
+    name: callflow-network

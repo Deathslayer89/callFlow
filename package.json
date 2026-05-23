@@ -1,0 +1,42 @@
+{
+  "name": "callflow",
+  "version": "1.0.0",
+  "description": "AI Phone Agent Platform - Realtime voice AI with workflows",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "agent",
+    "workflows",
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:agent": "npm run dev --workspace=agent",
+    "dev:workflows": "npm run dev --workspace=workflows",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:all": "concurrently \"npm:dev:*\"",
+    "build": "npm run build --workspace=shared && npm run build --workspace=workflows && npm run build --workspace=agent && npm run build --workspace=backend && npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=shared && npm run build --workspace=workflows && npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "eval": "promptfoo eval -c evals/promptfooconfig.yaml -o evals/results.html -o evals/results.json",
+    "eval:view": "promptfoo view -c evals/promptfooconfig.yaml",
+    "eval:report": "node evals/build-results-md.mjs",
+    "docker:up": "docker-compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker-compose -f docker/docker-compose.yml logs -f",
+    "migrate": "npm run migrate --workspace=backend",
+    "setup": "npm install && npm run docker:up && npm run migrate"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "promptfoo": "^0.115.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  }
+}
