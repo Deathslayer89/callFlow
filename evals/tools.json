@@ -1,0 +1,100 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "record_caller_email",
+      "description": "REQUIRED whenever the caller provides their email. Persists the email on the call.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Caller email. Spoken words like 'at'/'dot' will be normalized."
+          }
+        },
+        "required": ["email"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_caller_context",
+      "description": "REQUIRED after record_caller_email succeeds. Pulls prior-call memories.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Optional topic to search." }
+        }
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "check_customer_status",
+      "description": "REQUIRED to look up account, plan, or recent-activity info.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "description": "Customer email." }
+        },
+        "required": ["email"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "create_ticket",
+      "description": "REQUIRED to file a support ticket. Invoke when the caller reports a problem they want logged.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string", "description": "What the caller reported." },
+          "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+          "category": { "type": "string", "description": "Issue category." }
+        },
+        "required": ["description"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_call_ticket",
+      "description": "Fetches the ticket attached to this call.",
+      "parameters": { "type": "object", "properties": {} }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "schedule_appointment",
+      "description": "REQUIRED to book an appointment.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "description": "YYYY-MM-DD" },
+          "time": { "type": "string", "description": "HH:MM in 24-hour format" },
+          "duration": { "type": "number", "description": "Minutes" },
+          "notes": { "type": "string" }
+        },
+        "required": ["date", "time"]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "end_call",
+      "description": "REQUIRED to hang up.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+]

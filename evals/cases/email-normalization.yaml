@@ -1,0 +1,65 @@
+# STT artifact handling — the model should normalise "at"/"dot"/"thread"
+# back to "@" and "." when it calls record_caller_email.
+
+- description: '"at" and "dot" normalize to @ and .'
+  vars:
+    user: "Hi, my email is dinesh at dinesh dot com."
+    expectedTool: record_caller_email
+    expectedArgs:
+      email: 'dinesh@dinesh.com'
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: email_norm
+
+- description: '"thread" (nova-3 STT) treated as @'
+  vars:
+    user: "My email is dinesh thread dinesh dot com."
+    expectedTool: record_caller_email
+    expectedArgs:
+      email:
+        regex: 'dinesh@dinesh\.com'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: email_norm
+
+- description: '"at the rate" — alternate phrasing'
+  vars:
+    user: "My email is alice at the rate example dot com."
+    expectedTool: record_caller_email
+    expectedArgs:
+      email:
+        regex: 'alice@example\.com'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: email_norm
+
+- description: 'subdomain "dot" — bob at mail dot example dot com'
+  vars:
+    user: "I'm bob at mail dot example dot com."
+    expectedTool: record_caller_email
+    expectedArgs:
+      email:
+        regex: 'bob@mail\.example\.com'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: email_norm
+
+- description: '"underscore" preserved in local part'
+  vars:
+    user: "Email me at jane underscore doe at example dot com."
+    expectedTool: record_caller_email
+    expectedArgs:
+      email:
+        regex: 'jane_doe@example\.com'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: email_norm

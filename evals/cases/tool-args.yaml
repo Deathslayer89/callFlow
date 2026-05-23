@@ -1,0 +1,99 @@
+# Tool-argument correctness — given a caller statement, does the model
+# extract the right field values (priority, dates, emails, etc.)?
+
+- description: high-priority issue extracted into create_ticket
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "URGENT: my login is broken. I need this fixed today, high priority."
+    expectedTool: create_ticket
+    expectedArgs:
+      priority: high
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: tool_args
+
+- description: description carries enough detail
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "My router is showing a red light and I can't connect to wifi since this morning."
+    expectedTool: create_ticket
+    expectedArgs:
+      description:
+        regex: 'router|wifi|connect|red light'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: tool_args
+
+- description: low-priority for cosmetic issues
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "Minor thing — the menu icons on your dashboard look fuzzy. Whenever you get to it."
+    expectedTool: create_ticket
+    expectedArgs:
+      priority: low
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: tool_args
+
+- description: date + time extracted into schedule_appointment
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "Schedule a meeting for 2026-06-15 at 14:30, half an hour."
+    expectedTool: schedule_appointment
+    expectedArgs:
+      date: '2026-06-15'
+      time:
+        regex: '14:30|2:30'
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: tool_args
+
+- description: check_customer_status gets the caller's email as arg
+  vars:
+    user: |
+      [Email already on file: bob@example.com.]
+      Caller: "What's my account status?"
+    expectedTool: check_customer_status
+    expectedArgs:
+      email:
+        regex: 'bob@example\.com'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: tool_args
+
+- description: end_call invoked on goodbye
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "I have to go pick up my kids. Bye."
+    expectedTool: end_call
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: tool_args
+
+- description: category extracted when obvious (billing)
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "There's a billing problem — I was charged twice this month. Please log it."
+    expectedTool: create_ticket
+    expectedArgs:
+      category:
+        regex: 'billing'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: tool_args

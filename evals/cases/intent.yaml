@@ -1,0 +1,88 @@
+# Intent classification — does the model pick the right tool for the
+# caller's request?
+
+- description: broken service → create_ticket
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "My internet is down."
+    expectedTool: create_ticket
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: account question → check_customer_status
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "Can you tell me what plan I'm on?"
+    expectedTool: check_customer_status
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: booking request → schedule_appointment
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "Book me an appointment for May 30th at 2 PM, please."
+    expectedTool: schedule_appointment
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: goodbye → end_call
+  vars:
+    user: |
+      [Email already on file: alice@example.com. Ticket TICK-9F2A already opened earlier.]
+      Caller: "That's all I needed, thanks. Bye."
+    expectedTool: end_call
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: explicit ticket request → create_ticket (not check_customer_status)
+  vars:
+    user: |
+      [Email already on file: alice@example.com.]
+      Caller: "Open a ticket for me — my account is locked."
+    expectedTool: create_ticket
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: caller asks for ticket ID → get_call_ticket
+  vars:
+    user: |
+      [Earlier this call: create_ticket was invoked and returned { ticket: { id: "TICK-7B3D" } }.]
+      Caller: "Can you give me my ticket ID?"
+    expectedTool: get_call_ticket
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: caller provides email → record_caller_email (opening turn)
+  vars:
+    user: "Hi, my email is dinesh@better.com"
+    expectedTool: record_caller_email
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent
+
+- description: after record_caller_email returns → get_caller_context
+  vars:
+    user: |
+      [Earlier this turn: record_caller_email succeeded with email dinesh@better.com
+       and the tool returned { saved: true }. What is the immediate next action?]
+    expectedTool: get_caller_context
+  assert:
+    - type: javascript
+      value: file://asserts/called-tool.js
+      metric: intent

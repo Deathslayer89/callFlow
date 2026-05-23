@@ -1,0 +1,49 @@
+description: callFlow agent tool-use eval suite
+
+prompts:
+  - id: chat_with_tools
+    raw: |
+      [
+        { "role": "system", "content": {{ system | dump }} },
+        { "role": "user", "content": {{ user | dump }} }
+      ]
+
+defaultTest:
+  vars:
+    system: file://system-prompt.txt
+  assert:
+    # Global: never leak tool / function names in the spoken text.
+    - type: javascript
+      value: file://asserts/no-tool-leak.js
+      metric: no_tool_leak
+
+providers:
+  - id: openrouter:openai/gpt-4o-mini
+    label: gpt-4o-mini
+    config:
+      tools: file://tools.json
+      tool_choice: auto
+      temperature: 0.2
+
+  - id: openrouter:anthropic/claude-haiku-4.5
+    label: claude-haiku-4.5
+    config:
+      tools: file://tools.json
+      tool_choice: auto
+      temperature: 0.2
+
+  - id: openrouter:meta-llama/llama-3.3-70b-instruct
+    label: llama-3.3-70b
+    config:
+      tools: file://tools.json
+      tool_choice: auto
+      temperature: 0.2
+
+  - id: openrouter:google/gemini-2.5-flash
+    label: gemini-2.5-flash
+    config:
+      tools: file://tools.json
+      tool_choice: auto
+      temperature: 0.2
+
+tests: file://cases/*.yaml

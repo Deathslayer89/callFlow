@@ -1,0 +1,90 @@
+# Multi-turn flows — caller history embedded in the user message.
+
+- description: ticket details accumulated over turns → single create_ticket with merged description
+  vars:
+    user: |
+      Conversation so far:
+        agent: "What's wrong?"
+        caller: "My printer is broken."
+        agent: "What kind of broken — paper jam, no power, something else?"
+        caller: "No power. The light won't turn on. I've had it for two years."
+      Now respond to the caller's last message.
+    expectedTool: create_ticket
+    expectedArgs:
+      description:
+        regex: 'printer.*power|no power.*printer|printer.*not.*on'
+        flags: is
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: multi_turn
+
+- description: caller corrects an earlier priority
+  vars:
+    user: |
+      Conversation so far:
+        caller: "I want to file a ticket about my wifi."
+        agent: "What priority — low, medium, or high?"
+        caller: "Medium. Actually, no — high. It's affecting my work."
+      Now respond.
+    expectedTool: create_ticket
+    expectedArgs:
+      priority: high
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: multi_turn
+
+- description: caller introduces themselves mid-call (late email)
+  vars:
+    user: |
+      Conversation so far:
+        agent: "Hi, can I get your email?"
+        caller: "Hold on."
+        agent: "Take your time."
+        caller: "OK, it's alex at acme dot com."
+      Now respond to the caller's last message.
+    expectedTool: record_caller_email
+    expectedArgs:
+      email:
+        regex: 'alex@acme\.com'
+        flags: i
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: multi_turn
+
+- description: appointment booked after confirming date+time over multiple turns
+  vars:
+    user: |
+      Conversation so far:
+        caller: "Can I book an appointment?"
+        agent: "What date works?"
+        caller: "June 2nd, 2026."
+        agent: "And what time?"
+        caller: "3 PM."
+      Now respond.
+    expectedTool: schedule_appointment
+    expectedArgs:
+      date: '2026-06-02'
+      time:
+        regex: '15:00|3:00 PM'
+  assert:
+    - type: javascript
+      value: file://asserts/tool-args-match.js
+      metric: multi_turn
+
+- description: caller asks for ticket ID later in the call
+  vars:
+    user: |
+      Conversation so far:
+        agent (system note): create_ticket was invoked earlier with
+                             { description: "wifi down", priority: "high" }
+                             and returned { ticket: { id: "TICK-4F8E" } }.
+        caller: "By the way, what was that ticket number again?"
+      Now respond.
+    expectedTicketId: 'TICK-4F8E'
+  assert:
+    - type: javascript
+      value: file://asserts/get-ticket-or-quote.js
+      metric: multi_turn
